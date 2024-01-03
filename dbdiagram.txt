@@ -1,0 +1,52 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table accounts as A {
+  id bigserial [pk] // big auto-incrementing integers
+  owner varchar [not null]
+  balance decimal [not null]
+  currency varchar [not null]
+  created_at timestamptz [not null, default: `now()`] // include timezone
+
+  // Search account by owner name
+  Indexes {
+    owner
+  }
+}
+
+Table entries {
+  id bigserial [pk]
+  account_id bigint [ref: > A.id] // foreign key based on Accounts table
+  // account-entries are one-to-many relationships.
+  amount decimal [not null, note: 'can be negative/positive']
+  created_at timestamptz [not null, default: `now()`]
+
+  // List entries based on account_id
+  Indexes {
+    account_id
+  }
+}
+
+Table transfers { // record all transfer between 2 account
+  id bigserial [pk]
+  sender_account_id bigint [ref: > A.id]
+  receiver_account_id biginit [ref: > A.id]
+  amount decimal [not null, note: 'must be positive']
+  created_at timestamptz [not null, default: `now()`]
+
+  // search all transfer that are going out/in of an account
+  Indexes {
+    sender_account_id
+    receiver_account_id
+    // between 2 specific account
+    (sender_account_id, receiver_account_id)
+  }
+}
+
+/* Optional
+Enum Currency {
+  USD 
+  IDR
+}
+*/
+
