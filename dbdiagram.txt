@@ -16,7 +16,7 @@ Table accounts as A {
 
 Table entries {
   id bigserial [pk]
-  account_id bigint [ref: > A.id] // foreign key based on Accounts table
+  account_id bigint [ref: > A.id, not null] // foreign key based on Accounts table
   // account-entries are one-to-many relationships.
   amount decimal [not null, note: 'can be negative/positive']
   created_at timestamptz [not null, default: `now()`]
@@ -29,8 +29,8 @@ Table entries {
 
 Table transfers { // record all transfer between 2 account
   id bigserial [pk]
-  sender_account_id bigint [ref: > A.id]
-  receiver_account_id biginit [ref: > A.id]
+  sender_account_id bigint [ref: > A.id, not null]
+  receiver_account_id bigint [ref: > A.id, not null]
   amount decimal [not null, note: 'must be positive']
   created_at timestamptz [not null, default: `now()`]
 
