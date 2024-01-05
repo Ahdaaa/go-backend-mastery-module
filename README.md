@@ -14,10 +14,16 @@
 docker pull postgres
 ```
 
-2. Create container with postgres image
+2. Create and run container with postgres image
 
 ```sh
 docker run --name postgres16 -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=insertpw -d postgres:16
+```
+
+Alternatively, you can start container with,
+
+```sh
+docker run postgres16
 ```
 
 3. Run docker container, to locate existing container use ``docker ps``
