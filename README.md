@@ -128,3 +128,30 @@ If there are no errors, try to refresh your tableplus, you should be able to see
 7. Add the migrate to Makefile.
 
 Use ``make migrateup`` to create all the tables, and use ``make migratedown`` to drop all of the tables.
+
+## Things to Consider - Golang CRUD
+
+1. Using low level standard library - [database/sql](https://pkg.go.dev/database/sql)
+
+For example:
+
+```go
+id := 123
+var username string
+var created time.Time
+err := db.QueryRowContext(ctx, "your sql query", id).Scan(&username, &created)
+```
+
+This may look Very fast & straightforward but we have to manually mapping all the sql fields to variables, easy to make mistakes and not caught until runtime.
+
+2. Using Object Relational Mapping Library for Golang - [GORM](https://gorm.io/docs/index.html).
+
+In [GORM](https://gorm.io/docs/index.html), the CRUD Functions are already implemented, this can make the production code shorter. So, we must learn to understand the library to do a specific assignment, such as complex queries. Also, Based on benchmarks on the internet, GORM may run slowly on high loads.
+
+3. Using Middleway Approach - [SQLX Library](https://pkg.go.dev/github.com/jmoiron/sqlx)
+
+SQLX runs nearly as fast as a standard library and very easy to use, the fields mapping are done via query text or struct tags. However, the code that we need to write are relatively longer than our previous method AND the errors of queries wont be occur until runtime.
+
+4. Using [SQLC Library](https://sqlc.dev/)
+
+Just like database/sql, this library runs very fast and easy to use, the most unique thing is that we just need to write sql queries then the golang code will be generated. Also, the library will catch sql query errors before generating the codes.
