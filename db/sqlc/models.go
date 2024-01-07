@@ -8,27 +8,27 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Account struct {
-	ID        int64
-	Owner     string
-	Balance   pgtype.Numeric
-	Currency  string
-	CreatedAt pgtype.Timestamptz
+type Accounts struct {
+	ID        int64              `json:"id"`
+	Owner     string             `json:"owner"`
+	Balance   pgtype.Numeric     `json:"balance"`
+	Currency  string             `json:"currency"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
-type Entry struct {
-	ID        int64
-	AccountID int64
+type Entries struct {
+	ID        int64 `json:"id"`
+	AccountID int64 `json:"account_id"`
 	// can be negative/positive
-	Amount    pgtype.Numeric
-	CreatedAt pgtype.Timestamptz
+	Amount    pgtype.Numeric     `json:"amount"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
-type Transfer struct {
-	ID                int64
-	SenderAccountID   int64
-	ReceiverAccountID int64
+type Transfers struct {
+	ID                int64 `json:"id"`
+	SenderAccountID   int64 `json:"sender_account_id"`
+	ReceiverAccountID int64 `json:"receiver_account_id"`
 	// must be positive
-	Amount    pgtype.Numeric
-	CreatedAt pgtype.Timestamptz
+	Amount    pgtype.Numeric     `json:"amount"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
