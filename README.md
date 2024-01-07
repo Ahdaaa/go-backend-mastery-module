@@ -154,4 +154,112 @@ SQLX runs nearly as fast as a standard library and very easy to use, the fields 
 
 4. Using [SQLC Library](https://sqlc.dev/)
 
-Just like database/sql, this library runs very fast and easy to use, the most unique thing is that we just need to write sql queries then the golang code will be generated. Also, the library will catch sql query errors before generating the codes.
+Just like database/sql, this library runs very fast and easy to use, the most unique thing is that we just need to write sql queries then the golang code will be generated. Also, the library will catch sql query errors before generating the codes. 
+
+This library will be valuable to increase efficiency and maintain code consistency. However, as a developer we need to complement and understand the generated code, we cant be over-reliance on generators without understanding it.
+
+## Getting Started with SQLC
+
+1. Go to the documentation page and install the library with ``go install``.
+
+```sh
+go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+```
+
+2. Run ``sqlc init`` inside your project directory, there will be a new file called ``sqlc.yaml``
+
+Using documentation, fill the file with this lines of code,
+
+```yaml
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "./db/query/"
+    schema: "./db/migration"
+    gen:
+      go:
+        package: "db"
+        out: "./db/sqlc"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_exact_table_names: true
+```
+
+Based on that yaml file, we will use ``postgresql`` engine and we want to store all our sql queries inside the directory ``./db/query`` while migration schemas in ``./db/migration``. Then, we will name our go package as ``db`` then store the generated go codes inside ``./db/sqlc``.
+
+3. Create sql insertion example file inside its directory.
+
+```sql
+-- name: CreateAccount :one
+INSERT INTO accounts (
+  owner, 
+  balance,
+  currency
+) VALUES (
+  $1, $2, $3
+) RETURNING *;
+```
+
+4. Generate sqlc and add its method inside Makefile.
+
+``sqlc generate``
+
+or 
+
+``make sqlc`` if you already put it inside makefile.
+
+After that, you will see 3 new generated go files inside ``./db/sqlc``
+
+``models.go`` : contains struct definition of database model
+
+``db.go`` : contains dbtx interface, the functions inside it will allows us to freely use either db or transaction to execute queries.
+
+``account.sql.go`` : contains all related code with inserting new account row into database.
+
+Then, you might need to install some needed import packages by using ``go get``, make sure you already initialize go module.
+
+Also, when we're working with sqlc, we should not modify the generated file because everytime we run ``make sqlc``, all those files will be regenerated then our changes will be gone. To solve this, make sure to create a new go files to modify its generated code.
+
+5. Add Read, Update, and Delete operation to ``account.sql`` then try to regenerate sqlc.
+
+Notes:
+
+``:one``  : will return one row
+``:many`` : will return >1 row
+``:exec`` : will not return anything
+
+**read**
+
+```sql
+-- name: GetAccount :one
+SELECT * FROM accounts
+WHERE id = $1 LIMIT 1;
+
+-- name: ListAccounts :many
+SELECT * FROM accounts
+ORDER BY id
+LIMIT $1
+OFFSET $2;
+```
+
+**update**
+
+```sql
+-- name: UpdateAccount :one
+UPDATE accounts 
+SET balance = $2
+WHERE id = $1 
+RETURNING *;
+```
+
+**delete**
+
+```sql
+-- name: DeleteAccount :exec
+DELETE FROM accounts 
+WHERE id = $1;
+```
+
+Then run ``make sqlc`` and the generated code will be updated.
+
+
