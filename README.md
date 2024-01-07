@@ -1,4 +1,4 @@
-# Rest API : Bank Transactions
+# go-backend-mastery-module
 
 ## Database CDM/PDM Setup
 
