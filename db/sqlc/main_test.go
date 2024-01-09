@@ -1,12 +1,13 @@
 package db
 
 import (
-	"database/sql"
+	"context"
 	"log"
 	"os"
 	"testing"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/lib/pq" // not used but still needed
 )
 
 const (
@@ -17,12 +18,13 @@ const (
 var testQueries *Queries
 
 func TestMain(m *testing.M) {
-	conn, err := sql.Open(dbDriver, dbSource)
+	conn, err := pgxpool.New(context.Background(), dbSource)
 	if err != nil {
 		log.Fatal("cannot connect to db: ", err)
 	}
+	defer conn.Close()
 
 	testQueries = New(conn)
-
 	os.Exit(m.Run())
+
 }
