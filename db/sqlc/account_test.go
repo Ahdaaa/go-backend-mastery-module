@@ -2,21 +2,25 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
+	"github.com/Ahdaaa/go-backend-mastery-module/tree/main/util"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateAccount(t *testing.T) {
 
+	preBalance := util.RandomMoney()
+	convert := fmt.Sprintf("%v", preBalance)
 	balance := pgtype.Numeric{}
-	balance.Scan("520.52")
+	balance.Scan(convert)
 
 	arg := CreateAccountParams{
-		Owner:    "filza",
+		Owner:    util.RandomOwner(),
 		Balance:  balance,
-		Currency: "USD",
+		Currency: util.RandomCurrency(),
 	}
 
 	account, err := testQueries.CreateAccount(context.Background(), arg)
