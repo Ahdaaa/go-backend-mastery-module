@@ -23,5 +23,10 @@ dropdb:
 sqlc:
 	sqlc generate
 
-.PHONY: postgres createdb consoledb migrateup migratedown dropdb sqlc
+# ./... will instructs Go to include all packages 
+# under the current directory and its subdirectories
+test:
+	go test -v -cover ./...
+
+.PHONY: postgres createdb consoledb migrateup migratedown dropdb sqlc test
 
