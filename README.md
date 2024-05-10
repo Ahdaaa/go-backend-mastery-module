@@ -25,7 +25,7 @@ docker run --name postgres16 -p 5433:5432 -e POSTGRES_USER=postgres -e POSTGRES_
 Alternatively, you can start container with,
 
 ```sh
-docker run postgres16
+docker start postgres16
 ```
 
 To locate running container, use ``docker ps``
