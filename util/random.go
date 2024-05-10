@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 	"time"
@@ -9,9 +10,12 @@ import (
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
 // random float between 0.0 and max
-func RandomFloat(max float64) float64 {
+func RandomFloat(max float64) string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return r.Float64() * max
+	randomValue := r.Float64() * max
+	converted := fmt.Sprintf("%.2f", randomValue)
+
+	return converted
 }
 
 // this will generates a random string of length n
@@ -31,7 +35,7 @@ func RandomOwner() string {
 	return RandomString(6)
 }
 
-func RandomMoney() float64 {
+func RandomMoney() string {
 	return RandomFloat(1000.0)
 }
 
