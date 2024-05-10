@@ -262,4 +262,18 @@ WHERE id = $1;
 
 Then run ``make sqlc`` and the generated code will be updated.
 
+## Go CRUD Testing
 
+Please see ``account_test.go`` for further details.
+
+## Go DB Transactions
+
+In a simple bank scenario, here is an example of transfering balance (steps):
+
+1. Create transfer record with amount=x
+2. Create entry for account1 with amount -= x
+3. Create entry for account2 with amount += x
+4. Subtract x from account1 and Add x to account2
+
+DB Transactions is important to isolate programs that accesses the db concurrently. Refer to ACID property for further details.
+For Go implementation, refer to ``store.go`` and ``store_test.go``
