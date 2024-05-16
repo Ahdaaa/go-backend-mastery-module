@@ -277,3 +277,7 @@ In a simple bank scenario, here is an example of transfering balance (steps):
 
 DB Transactions is important to isolate programs that accesses the db concurrently. Refer to ACID property for further details.
 For Go implementation, refer to ``store.go`` and ``store_test.go``
+
+When running tests on ``store_test.go``, we might encounter db transaction deadlock,
+because there are a few queries that accesses foreign key that are being used in other concurrent transaction.
+To solve this, refer to ``account.sql``, we'll use ``NO KEY`` to prevent deadlocks when updating accounts.
