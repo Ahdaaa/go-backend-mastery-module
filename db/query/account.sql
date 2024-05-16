@@ -11,6 +11,11 @@ INSERT INTO accounts (
 SELECT * FROM accounts
 WHERE id = $1 LIMIT 1;
 
+-- name: GetAccountForUpdate :one
+SELECT * FROM accounts
+WHERE id = $1 LIMIT 1
+FOR NO KEY UPDATE; -- NO KEY will prevent deadlock transaction that is accessing foreign keys.
+
 -- name: ListAccounts :many
 SELECT * FROM accounts
 ORDER BY id
