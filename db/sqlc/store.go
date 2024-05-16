@@ -3,6 +3,7 @@ package sqlc
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/Ahdaaa/go-backend-mastery-module/tree/main/util"
 	"github.com/jackc/pgx/v5"
@@ -58,6 +59,9 @@ type TransferTxResult struct {
 	ToEntry     Entries   `json:"to_entry"`
 }
 
+// deadlock handling
+var txKey = struct{}{} // empty object of a struct
+
 // transferTx will perform money transfering
 // it will create record, entries, and update balance within a single db transaction.
 func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
@@ -66,6 +70,9 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
+		txName := ctx.Value(txKey)
+
+		fmt.Println(txName, "create transfer")
 		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			SenderAccountID:   arg.FromAccountID,
 			ReceiverAccountID: arg.ToAccountID,
@@ -76,9 +83,8 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		// setNegative := fmt.Sprintf("-%.2f", arg.Amount)
+		fmt.Println(txName, "create entry 1")
 		decreaseAmount := util.CloneNegativeNumeric(arg.Amount)
-
 		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.FromAccountID,
 			Amount:    decreaseAmount,
@@ -87,6 +93,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
+		fmt.Println(txName, "create entry 2")
 		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.ToAccountID,
 			Amount:    arg.Amount,
@@ -98,6 +105,56 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		// Below is for Updating Account Balance
 		// Will be a bit complicated, to prevent deadlock, etc.
 		// TODO!
+
+		fmt.Println(txName, "get account 1")
+		account1, err := q.GetAccountForUpdate(ctx, arg.FromAccountID)
+		if err != nil {
+			return err
+		}
+
+		newInt := new(big.Int)
+
+		updateBalance1 := pgtype.Numeric{
+			Int:              newInt.Sub(account1.Balance.Int, arg.Amount.Int),
+			Exp:              -2,
+			NaN:              false,
+			Valid:            true,
+			InfinityModifier: 0,
+		}
+
+		fmt.Println(txName, "update account 1")
+		result.FromAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+			ID:      arg.FromAccountID,
+			Balance: updateBalance1,
+		})
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(txName, "get account 2")
+		account2, err := q.GetAccountForUpdate(ctx, arg.ToAccountID)
+		if err != nil {
+			return err
+		}
+
+		newInt2 := new(big.Int)
+
+		updateBalance2 := pgtype.Numeric{
+			Int:              newInt2.Add(account2.Balance.Int, arg.Amount.Int),
+			Exp:              -2,
+			NaN:              false,
+			Valid:            true,
+			InfinityModifier: 0,
+		}
+
+		fmt.Println(txName, "update account 2")
+		result.ToAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+			ID:      arg.ToAccountID,
+			Balance: updateBalance2,
+		})
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})
